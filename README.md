@@ -21,8 +21,6 @@ If you report out of CSuite today, this routine probably looks familiar:
 
 These templates eliminate steps 1–5. Once set up, your Excel workbook or Power BI report connects **directly** to the CSuite reporting API and pulls the current data every time you hit **Refresh**.
 
-This is especially powerful because CSuite custom reports can't join across objects (for example, one report showing both Donations *and* Grants). With these templates you can pull several CSuite reports into one Power BI or Excel file and combine them there — no more VLOOKUP-ing between exported CSVs.
-
 ## How it works
 
 ```mermaid
@@ -84,7 +82,6 @@ If your IT department prefers officially packaged connectors, use Foundant's. If
 | [PowerBITemplate.txt](PowerBITemplate.txt) | Power Query template for Power BI |
 | [ExcelTemplate.txt](ExcelTemplate.txt) | Power Query template for Excel |
 | [docs/](docs/) | Step-by-step guides (start here!) |
-| [Resources/](Resources/) | Presentation deck: *CSuite Reporting APIs* (August 2025) — a walkthrough of these concepts in slide form |
 
 ## Getting help
 
