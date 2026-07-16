@@ -1,0 +1,47 @@
+let
+    /******************** 1.  CALL THE API (POST) ********************/
+    RawJson = Json.Document(
+        Web.Contents(
+            "https://<**ORG_PREFIX_HERE**>.fcsuite.com/api/v1/report/display",
+            [
+                Headers = [
+                    #"SIGNER"        = "<**SIGNER**>",
+                    #"SIGNATURE"     = "<**SIGNATURE**>",
+                    #"Content-Type"  = "application/x-www-form-urlencoded",
+                    #"User-Agent"    = "PowerQuery"
+                ],
+                Content = Text.ToBinary("report_id=<**REPORT_ID**>")
+            ]
+        )
+    ),
+
+    /******************** 2.  COLUMN NAMES FROM schema ***************/
+    SchemaTable    = Record.ToTable( RawJson[schema] ),
+    SchemaExpanded = Table.ExpandRecordColumn(
+                         SchemaTable, "Value",
+                         {"index", "title"}
+                     ),
+    SortedSchema   = Table.Sort( SchemaExpanded, {{"index", Order.Ascending}} ),
+    ColumnNames    = SortedSchema[title],
+
+    /******************** 3.  RESULTS → TABLE (raw) ******************/
+    ResultsRaw     = Table.FromRows( RawJson[results], ColumnNames ),
+
+    /******************** 4.  LIST → TEXT  (generic) *****************/
+    // helper: join any list with ", "
+    ListToText = (v as any) as any =>
+        if v is list then
+            if List.Count(v)=0 then null
+            else Text.Combine( List.Transform(v, each Text.From(_)), ", " )
+        else v,
+
+    ResultsFixed = Table.TransformColumns(
+                       ResultsRaw,
+                       List.Transform(
+                           Table.ColumnNames(ResultsRaw),
+                           each { _, each ListToText(_), type any }
+                       )
+                   )
+
+in
+    ResultsFixed

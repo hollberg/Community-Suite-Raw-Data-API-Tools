@@ -1,0 +1,60 @@
+/******** CSuite Custom Reporting API Template ************************/
+/* 
+Created by: Mitch Hollberg                                         
+mitch@morrisonanalytics.com / mhollberg@gmail.com
+
+After selecting "enable"  for a CSuite custom report API, find and replace the
+   * SIGNER
+   * SIGNATURE
+   * report_id
+values in section 1 below.
+
+*/
+
+/******** CSuite Custom Reporting API — refresh-safe (Service/gateway) ********/
+let
+    /******************** 1.  CALL THE API (POST) ********************/
+    // Static base URL + RelativePath is the key: it makes the data source
+    // statically analyzable, which is what the Service requires for refresh.
+    BaseUrl = "https://<**ORG_PREFIX_HERE**>.fcsuite.com",
+
+    RawJson = Json.Document(
+        Web.Contents(
+            BaseUrl,
+            [
+                RelativePath = "api/v1/report/display",
+                Headers = [
+                    #"SIGNER"       = "<**SIGNER HERE**>",
+                    #"SIGNATURE"    = "<**SIGNATURE**>",
+                    #"Content-Type" = "application/x-www-form-urlencoded",
+                    #"User-Agent"   = "PowerQuery"
+                ],
+                Content = Text.ToBinary("report_id=<**REPORT ID**>")
+            ]
+        )
+    ),
+    /******************** 2.  COLUMN NAMES FROM schema ***************/
+    SchemaTable    = Record.ToTable( RawJson[schema] ),
+    SchemaExpanded = Table.ExpandRecordColumn(
+                         SchemaTable, "Value",
+                         {"index", "title"}
+                     ),
+    SortedSchema   = Table.Sort( SchemaExpanded, {{"index", Order.Ascending}} ),
+    ColumnNames    = SortedSchema[title],
+    /******************** 3.  RESULTS → TABLE (raw) ******************/
+    ResultsRaw     = Table.FromRows( RawJson[results], ColumnNames ),
+    /******************** 4.  LIST → TEXT  (generic) *****************/
+    ListToText = (v as any) as any =>
+        if v is list then
+            if List.Count(v)=0 then null
+            else Text.Combine( List.Transform(v, each Text.From(_)), ", " )
+        else v,
+    ResultsFixed = Table.TransformColumns(
+                       ResultsRaw,
+                       List.Transform(
+                           Table.ColumnNames(ResultsRaw),
+                           each { _, each ListToText(_), type any }
+                       )
+                   )
+in
+    ResultsFixed

@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Resources directory
+Resources/
+
+# Local editor / tooling artifacts (may contain credentials or org-specific captures)
+.history/
+.playwright-mcp/
+*.bak-prescrub
+_scrub_pptx.py
